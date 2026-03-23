@@ -1,29 +1,31 @@
-# ==============================================================================
 # 1. 라이브러리 로드
-# ==============================================================================
+
 library(DESeq2)
-library(SummarizedExperiment)
 library(tibble)
 
-# ==============================================================================
-# 2. 데이터 불러오기 (.rds 파일)
-# ==============================================================================
-se <- readRDS("null.merged.gene.SummarizedExperiment.rds")
+# 2. 데이터 불러오기 (TSV 파일)
+tsv <- read.table("salmon.merged.gene_counts_length_scaled.tsv",
+                  header = TRUE, sep = "\t", row.names = 1,
+                  check.names = FALSE)
 
-# ==============================================================================
-# 3. 데이터 정제
-# ==============================================================================
+# 3. 데이터 전처리
+# gene_name 컬럼 분리 보관 및 제거
+gene_names <- tsv$gene_name
+names(gene_names) <- rownames(tsv)
+tsv <- tsv[, colnames(tsv) != "gene_name"]
 
 # 카운트 데이터를 Matrix로 변환하고 Integer로 반올림
-# nf-core 결과는 소수점이 포함되어 있으나 DESeq2는 정수 입력만 받음.
-counts_data <- assay(se, "salmon.merged.gene_counts_length_scaled")
-counts_data <- as.matrix(counts_data)
+# Salmon 결과는 소수점이 포함되어 있으나 DESeq2는 정수 입력만 받음.
+counts_data <- as.matrix(tsv)
 counts_data <- round(counts_data)
 
 # 메타데이터 생성
-# 현재 colData에는 condition 정보가 없으므로 샘플 이름에서 추출
+# 샘플 컬럼 이름으로 실험군/대조군 확인
 # "Control"이라는 글자가 들어가면 Control, 아니면 Treated로 분류
-col_data <- colData(se)
+col_data <- data.frame(
+  sample    = colnames(counts_data),
+  row.names = colnames(counts_data)
+)
 col_data$condition <- ifelse(grepl("Control", col_data$sample), "Control", "Treated")
 
 # 기준 레벨(Reference Level) 설정
@@ -31,29 +33,23 @@ col_data$condition <- ifelse(grepl("Control", col_data$sample), "Control", "Trea
 col_data$condition <- factor(col_data$condition)
 col_data$condition <- relevel(col_data$condition, ref = "Control")
 
-
-# ==============================================================================
 # 4. DESeq2 객체 생성 및 분석 실행
-# ==============================================================================
 dds <- DESeqDataSetFromMatrix(countData = counts_data,
                               colData = col_data,
                               design = ~ condition)
 
-# se에 있던 gene_name 정보를 dds에 추가
-rowData(dds)$gene_name <- rowData(se)$gene_name
+# 보관해 둔 gene_name 정보를 dds에 추가
+rowData(dds)$gene_name <- gene_names[rownames(dds)]
 
-# ==========================================================
+
 # Pre-filtering
-# ==========================================================
 smallestGroupSize <- 3
 keep <- rowSums(counts(dds) >= 10) >= smallestGroupSize
 dds <- dds[keep,]
 
 dds <- DESeq(dds)
 
-# ==============================================================================
 # 5. 결과 확인 및 저장
-# ==============================================================================
 res <- results(dds)
 res <- as.data.frame(res)
 
