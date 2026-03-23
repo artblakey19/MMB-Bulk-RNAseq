@@ -1,0 +1,48 @@
+1. Batch Effect 보정하기
+
+만약 실험 과정에서 같은 Control이나 Treated 사이에도 실험 날짜가 다르거나 해서 Batch effect가 나타난다면
+dds <- DESeqDataSetFromMatrix(countData = counts_data,
+                              colData = col_data,
+                              design = ~ condition)
+에서 design = ~ batch + condition으로 설정 시 Batch effect로 인한 노이즈를 제거하고 분석을 진행한다.
+Batch effect가 있었는지는 PCA plot으로 확인할 수 있다.
+
+(Gemini 피셜)
+만약 다음 중 하나라도 해당된다면 배치 효과가 존재할 가능성이 큽니다.
+
+    날짜: Control 3개는 월요일에, Cebu 3개는 금요일에 라이브러리를 제작했나요?
+
+    작업자: 샘플별로 RNA 추출을 한 사람이 다른가요?
+
+    기기/키트: 다른 시기에 산 키트를 썼거나, 다른 시퀀싱 장비(Lane)에서 읽었나요?
+    
+
+실험 이력을 잘 모르겠다면, 데이터를 시각화해서 "배치"가 데이터를 지배하고 있는지 확인해야 합니다. 아래 코드로 PCA plot을 그려보세요.
+
+# 1. 데이터 변환 (PCA를 위해 분산 안정화 변환 수행)
+vsd <- vst(dds, blind=FALSE)
+
+# 2. PCA Plot 그리기
+plotPCA(vsd, intgroup="condition")
+---------------------------------------------------------------------------
+2. 올바른 .rds 파일 객체 선택하기
+
+.rds 파일의 여러 객체 중 무엇을 써야 하는가?
+
+https://nf-co.re/rnaseq/3.19.0/docs/output
+
+According to the txtimport documentation you can do one of the following:
+
+    Use the original (bias-uncorrected) counts with an offset: import all the salmon quant.sf files with tximport and then use DESeq2 with dds <- DESeqDataSetFromTximport(txi, sampleTable, ~condition) to automatically construct an object with gene-level offsets in-built, which can be used by DESeq2 to automatically account for effective gene length effects across conditions. It’s also possible to combine the .merged.gene_counts.tsv and .gene_lengths.tsv matrices output by this workflow to make your own object the same way - which is what the nf-core differentialabundance workflow does. See the DESeq2 module for the implementation details.
+    Use bias-corrected counts without an offset: load and use salmon.merged.gene_counts_length_scaled.tsv or salmon.merged.gene_counts_scaled.tsv directly as you would with a regular gene-level counts matrix. These files were created using the tximport argument countsFromAbundance="scaledTPM" or "lengthScaledTPM" to scale counts to library size or to library size and average transcript length respectively.
+    Use the original (bias-uncorrected) counts without an offset: load and use the txi$counts matrix (or salmon.merged.gene_counts.tsv) with DESeq2. This is generally not recommended, since it does not correct for potential differential isoform usage (the offset). However, if you have 3’ tagged RNA-seq data, then this is the most suitable method, because the counts do not exhibit any length bias.
+
+내가 분석한 Raw 데이터의 정보는 다음과 같음
+
+Type of Read		Paired-ends	
+Read Length		101	
+Library Kit		TruSeq Stranded mRNA Library Prep Kit	
+Library Protocol		TruSeq Stranded mRNA Reference Guide # 1000000040498 v00	
+Type of Sequencer		Illumina platform
+
+read2는 3'RNAseq이 아님, mRNA를 여러 조각으로 나눠서 읽기 때문

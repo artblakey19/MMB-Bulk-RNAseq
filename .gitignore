@@ -1,0 +1,15 @@
+# renv
+renv/library/
+renv/staging/
+renv/cellar/
+renv/lock/
+renv/python/
+renv/sandbox/
+
+# R
+.Rhistory
+.RData
+.Rproj.user/
+
+# 데이터 파일
+*.rds
