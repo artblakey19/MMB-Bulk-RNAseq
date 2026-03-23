@@ -12,4 +12,5 @@ renv/sandbox/
 .Rproj.user/
 
 # 데이터 파일
-*.rds
+*.tsv
+*.csv

@@ -1,5 +1,4 @@
 # 1. 라이브러리 로드
-
 library(DESeq2)
 library(tibble)
 
@@ -40,7 +39,6 @@ dds <- DESeqDataSetFromMatrix(countData = counts_data,
 
 # 보관해 둔 gene_name 정보를 dds에 추가
 rowData(dds)$gene_name <- gene_names[rownames(dds)]
-
 
 # Pre-filtering
 smallestGroupSize <- 3

@@ -25,7 +25,7 @@ METRIC_COL <- "stat"       # 랭킹 기준 (stat 혹은 log2FoldChange)
 ranks <- deg_results %>%
   filter(!is.na(.data[[GENE_COL]]), !is.na(.data[[METRIC_COL]])) %>%
   arrange(desc(.data[[METRIC_COL]])) %>%
-  { setNames(.$[[METRIC_COL]], as.character(.[[GENE_COL]])) }
+  { setNames(.[[METRIC_COL]], as.character(.[[GENE_COL]])) }
 
 
 # 4. MSigDB 데이터 준비

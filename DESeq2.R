@@ -3,7 +3,7 @@ library(DESeq2)
 library(tibble)
 
 # 2. TSV 불러오기
-tsv <- read.table("salmon.merged.gene_counts_length_scaled.tsv",
+tsv <- read.table("Cebu_salmon.merged.gene_counts_length_scaled.tsv",
                   header = TRUE, sep = "\t", row.names = 1,
                   check.names = FALSE)
 # gene_name 컬럼 제거 후 카운트 행렬만 추출
