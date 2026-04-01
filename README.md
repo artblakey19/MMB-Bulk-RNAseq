@@ -123,31 +123,6 @@ renv::snapshot()
 # renv.lock 파일은 반드시 커밋에 포함해야 합니다
 ```
 
-### .gitignore 권장 설정
-
-```gitignore
-# renv
-renv/library/
-renv/staging/
-renv/cellar/
-renv/lock/
-renv/python/
-renv/sandbox/
-
-# R
-.Rhistory
-.RData
-.Rproj.user/
-
-# 데이터 파일 (용량이 큰 경우)
-*.rds
-```
-
-> **핵심 파일:** `renv.lock`과 `renv/activate.R`은 반드시 Git에 포함되어야 합니다.  
-> 이 두 파일만 있으면 누구든 `renv::restore()`로 동일한 환경을 구성할 수 있습니다.
-
----
-
 ## 필요 패키지
 
 | 패키지 | 출처 | 용도 |
